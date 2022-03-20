@@ -17,9 +17,9 @@ namespace ProductReviewService.Controllers
 
         // GET: api/<ReviewsController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<ReviewModel> Get()
         {
-            return  _tableService.GetAllRows().Select(_ => _.ProductName).ToArray();
+            return _tableService.GetAllReviews().ToArray();
         }
 
         // GET api/<ReviewsController>/5

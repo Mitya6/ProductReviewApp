@@ -13,7 +13,7 @@ namespace ProductReviewService.Services
             _tableClient = tableClient;
         }
 
-        public IEnumerable<ReviewModel> GetAllRows()
+        public IEnumerable<ReviewModel> GetAllReviews()
         {
             Pageable<TableEntity> entities = _tableClient.Query<TableEntity>();
 

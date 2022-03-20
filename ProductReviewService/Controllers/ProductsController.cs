@@ -1,0 +1,24 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using ProductReviewService.Services;
+
+namespace ProductReviewService.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductsController : ControllerBase
+    {
+        private readonly ProductsAndReviewsTableService _tableService;
+
+        public ProductsController(ProductsAndReviewsTableService tableService)
+        {
+            _tableService = tableService;
+        }
+
+        // GET: api/<ProductsController>
+        [HttpGet]
+        public ActionResult<IEnumerable<string>> Get()
+        {
+            return _tableService.GetAllReviews().Select(_ => _.ProductName).Distinct().ToArray();
+        }
+    }
+}
