@@ -26,20 +26,33 @@ namespace ProductReviewService.Services
 
             Pageable<TableEntity> entities = _tableClient.Query<TableEntity>(filter);
 
-            return entities.Reverse().Select(MapTableEntityToReviewModel);
+            return entities.Select(MapTableEntityToReviewModel);
         }
 
         public void InsertTableEntity(ReviewInputModel model)
         {
+            string invertedTicks = ToInvertedTicks(DateTime.UtcNow);
+
             TableEntity entity = new TableEntity
             {
                 PartitionKey = model.ProductName,
-                RowKey = Guid.NewGuid().ToString()
+                RowKey = invertedTicks + Guid.NewGuid().ToString()
             };
 
-            entity[nameof(ReviewModel.ReviewText)] = model.ReviewText;
+            int maxLength = 500;
+            entity[nameof(ReviewModel.ReviewText)] = model.ReviewText.Substring(0, Math.Min(maxLength, model.ReviewText.Length));
 
             _tableClient.AddEntity(entity);
+        }
+
+        private string ToInvertedTicks(DateTime dateTime)
+        {
+            return string.Format("{0:D19}", DateTime.MaxValue.Ticks - dateTime.Ticks);
+        }
+
+        private DateTime ToDateTime(string invertedTicks)
+        {
+            return new DateTime(DateTime.MaxValue.Ticks - long.Parse(invertedTicks));
         }
 
         public ReviewModel MapTableEntityToReviewModel(TableEntity entity)
@@ -47,9 +60,8 @@ namespace ProductReviewService.Services
             ReviewModel review = new ReviewModel
             {
                 ProductName = entity.PartitionKey,
-                ID = Guid.Parse(entity.RowKey),
-                Timestamp = entity.Timestamp,
-                Etag = entity.ETag.ToString(),
+                Timestamp = ToDateTime(entity.RowKey.Substring(0, 19)),
+                ID = Guid.Parse(entity.RowKey.Substring(19, 36)),
                 ReviewText = entity[nameof(ReviewModel.ReviewText)].ToString()
             };
 
