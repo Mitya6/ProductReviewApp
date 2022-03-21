@@ -31,18 +31,22 @@ namespace ProductReviewService.Services
 
         public void InsertTableEntity(ReviewInputModel model)
         {
-            string invertedTicks = ToInvertedTicks(DateTime.UtcNow);
-
-            TableEntity entity = new TableEntity
+            if (!string.IsNullOrWhiteSpace(model.ReviewText))
             {
-                PartitionKey = model.ProductName,
-                RowKey = invertedTicks + Guid.NewGuid().ToString()
-            };
+                string invertedTicks = ToInvertedTicks(DateTime.UtcNow);
 
-            int maxLength = 500;
-            entity[nameof(ReviewModel.ReviewText)] = model.ReviewText.Substring(0, Math.Min(maxLength, model.ReviewText.Length));
+                TableEntity entity = new TableEntity
+                {
+                    PartitionKey = model.ProductName,
+                    RowKey = invertedTicks + Guid.NewGuid().ToString()
+                };
 
-            _tableClient.AddEntity(entity);
+
+                int maxLength = 500;
+                entity[nameof(ReviewModel.ReviewText)] = model.ReviewText.Substring(0, Math.Min(maxLength, model.ReviewText.Length));
+
+                _tableClient.AddEntity(entity);
+            }
         }
 
         private string ToInvertedTicks(DateTime dateTime)
@@ -62,7 +66,7 @@ namespace ProductReviewService.Services
                 ProductName = entity.PartitionKey,
                 Timestamp = ToDateTime(entity.RowKey.Substring(0, 19)),
                 ID = Guid.Parse(entity.RowKey.Substring(19, 36)),
-                ReviewText = entity[nameof(ReviewModel.ReviewText)].ToString()
+                ReviewText = entity[nameof(ReviewModel.ReviewText)]?.ToString()
             };
 
             return review;
