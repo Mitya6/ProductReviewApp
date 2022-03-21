@@ -20,6 +20,15 @@ namespace ProductReviewService.Services
             return entities.Select(MapTableEntityToReviewModel);
         }
 
+        public IEnumerable<ReviewModel> GetReviewsForProduct(string product)
+        {
+            string filter = $"PartitionKey eq '{product}'";
+
+            Pageable<TableEntity> entities = _tableClient.Query<TableEntity>(filter);
+
+            return entities.Reverse().Select(MapTableEntityToReviewModel);
+        }
+
         public void InsertTableEntity(ReviewInputModel model)
         {
             TableEntity entity = new TableEntity

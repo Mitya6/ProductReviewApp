@@ -6,17 +6,31 @@
     <link rel="stylesheet" href="css/site.css" />
 </head>
 <body>
-    <h1>Please select a product and write a review.</h1>
+    <h1 id="pageHeader"></h1>
 
-    <p id="counter"></p>
+    <div id="productList" style="display:none">
+        <p id="counter"></p>
 
-    <table>
-        <tr>
-            <th>Name</th>
-            <th></th>
-        </tr>
-        <tbody id="products"></tbody>
-    </table>
+        <table>
+            <tr>
+                <th>Product</th>
+                <th></th>
+            </tr>
+            <tbody id="products"></tbody>
+        </table>
+    </div>
+
+    <div id="reviewList" style="display:none">
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Review</th>
+            </tr>
+            <tbody id="reviews"></tbody>
+        </table>
+
+        <input type="button" value="Back to products" onclick="getProducts()">
+    </div>
 
     <script src="js/site.js" asp-append-version="true"></script>
     <script type="text/javascript">

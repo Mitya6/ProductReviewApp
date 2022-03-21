@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProductReviewService.Models;
 using ProductReviewService.Services;
 
 namespace ProductReviewService.Controllers
@@ -19,6 +20,13 @@ namespace ProductReviewService.Controllers
         public ActionResult<IEnumerable<string>> Get()
         {
             return _tableService.GetAllReviews().Select(_ => _.ProductName).Distinct().ToArray();
+        }
+
+        //GET api/<ProductsController>/5
+        [HttpGet("{id}")]
+        public ActionResult<IEnumerable<ReviewModel>> Get(string id)
+        {
+            return _tableService.GetReviewsForProduct(id).ToArray();
         }
     }
 }
