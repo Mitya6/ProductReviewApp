@@ -17,24 +17,26 @@ function getReviews(product) {
 function displayReviews(product, reviews) {
     document.getElementById('productList').style.display = 'none';
     document.getElementById('reviewList').style.display = 'block';
-    document.getElementById('pageHeader').innerHTML = 'Please write a review. (Max 500 characters)';
+    document.getElementById('pageHeader').innerHTML = 'Please write a review for ' + product + '. (Max 500 characters)';
+    document.getElementById('title').innerHTML = product;
 
     displayedProductName = product;
 
-    const tBody = document.getElementById('reviews');
-    tBody.innerHTML = '';
+    const existingReviewsDiv = document.getElementById('existingReviews');
+    existingReviewsDiv.innerHTML = '';
 
     reviews.forEach(review => {
-        let tr = tBody.insertRow();
+        let fieldSet = document.createElement("FIELDSET");
+        let legend = document.createElement("legend");
+        let div = document.createElement("div");
+        div.style.maxWidth = '840px';
+        div.style.wordBreak = 'break-all';
+        div.innerHTML = review.reviewText;
+        legend.innerHTML = review.timestamp;
+        fieldSet.appendChild(legend);
+        fieldSet.appendChild(div);
 
-        let td1 = tr.insertCell(0);
-        let date = document.createTextNode(review.timestamp);
-        td1.appendChild(date);
-
-
-        let td2 = tr.insertCell(1);
-        let reviewText = document.createTextNode(review.reviewText);
-        td2.appendChild(reviewText);
+        existingReviewsDiv.appendChild(fieldSet);
     });
 }
 
@@ -48,6 +50,7 @@ function displayProducts(products) {
     document.getElementById('productList').style.display = 'block';
     document.getElementById('reviewList').style.display = 'none';
     document.getElementById('pageHeader').innerHTML = 'Please select a product.';
+    document.getElementById('title').innerHTML = 'Browse products';
 
     displayedProductName = '';
 

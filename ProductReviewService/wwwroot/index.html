@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Browse products</title>
+    <title id="title">Browse products</title>
     <link rel="stylesheet" href="css/site.css" />
 </head>
 <body>
@@ -22,20 +22,16 @@
 
     <div id="reviewList" style="display:none">
 
-        <form action="javascript:void(0);" method="POST" onsubmit="addReview()">
-            <input type="text" id="addReviewTextbox" placeholder="New review">
+        <input type="button" value="Back to products" onclick="getProducts()">
+
+        <form action="javascript:void(0);" method="POST" onsubmit="addReview()"
+              style="margin:25px">
+            <textarea id="addReviewTextbox" placeholder="New review" cols="40" rows="5"></textarea>
             <input type="submit" value="Add">
         </form>
 
-        <table>
-            <tr>
-                <th>Date</th>
-                <th>Review</th>
-            </tr>
-            <tbody id="reviews"></tbody>
-        </table>
+        <div id="existingReviews"></div>
 
-        <input type="button" value="Back to products" onclick="getProducts()">
     </div>
 
     <script src="js/site.js" asp-append-version="true"></script>

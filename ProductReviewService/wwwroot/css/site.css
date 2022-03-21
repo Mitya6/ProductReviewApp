@@ -12,6 +12,15 @@ table {
     border-collapse: collapse;
 }
 
+fieldset {
+    width: 840px;
+    border-radius: 8px;
+}
+
+.tdbreak {
+    word-break: break-all;
+}
+
 th {
     background-color: #f8f8f8;
     padding: 5px;
