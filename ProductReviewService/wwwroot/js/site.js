@@ -1,4 +1,6 @@
-﻿function getProducts() {
+﻿let displayedProductName = '';
+
+function getProducts() {
     fetch('api/products')
         .then(response => response.json())
         .then(products => displayProducts(products))
@@ -8,14 +10,16 @@
 function getReviews(product) {
     fetch('api/products/' + product)
         .then(response => response.json())
-        .then(reviews => displayReviews(reviews))
+        .then(reviews => displayReviews(product, reviews))
         .catch(error => console.error('Unable to get reviews.', error));
 }
 
-function displayReviews(reviews) {
+function displayReviews(product, reviews) {
     document.getElementById('productList').style.display = 'none';
     document.getElementById('reviewList').style.display = 'block';
-    document.getElementById('pageHeader').innerHTML = 'Please write a review.';
+    document.getElementById('pageHeader').innerHTML = 'Please write a review. (Max 500 characters)';
+
+    displayedProductName = product;
 
     const tBody = document.getElementById('reviews');
     tBody.innerHTML = '';
@@ -45,6 +49,8 @@ function displayProducts(products) {
     document.getElementById('reviewList').style.display = 'none';
     document.getElementById('pageHeader').innerHTML = 'Please select a product.';
 
+    displayedProductName = '';
+
     const tBody = document.getElementById('products');
     tBody.innerHTML = '';
 
@@ -67,4 +73,27 @@ function displayProducts(products) {
         let td2 = tr.insertCell(1);
         td2.appendChild(reviewButton);
     });
+}
+
+function addReview() {
+    const addReviewTextbox = document.getElementById('addReviewTextbox');
+
+    const newReview = {
+        productName: displayedProductName,
+        reviewText: addReviewTextbox.value.trim()
+    };
+
+    fetch('api/products', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newReview)
+    })
+        .then(() => {
+            addReviewTextbox.value = '';
+            getReviews(displayedProductName);
+        })
+        .catch(error => console.error('Unable to add new review.', error));
 }

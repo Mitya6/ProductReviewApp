@@ -28,5 +28,14 @@ namespace ProductReviewService.Controllers
         {
             return _tableService.GetReviewsForProduct(id).ToArray();
         }
+
+        // POST api/<ProductsController>
+        [HttpPost]
+        public ActionResult Post([FromBody] ReviewInputModel model)
+        {
+            _tableService.InsertTableEntity(model);
+
+            return Ok();
+        }
     }
 }
