@@ -19,7 +19,7 @@ namespace ProductReviewService.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            return _tableService.GetAllReviews().Select(_ => _.ProductName).Distinct().ToArray();
+            return _tableService.GetAllProducts().ToArray();
         }
 
         //GET api/<ProductsController>/5

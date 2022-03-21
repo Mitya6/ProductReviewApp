@@ -13,11 +13,14 @@ namespace ProductReviewService.Services
             _tableClient = tableClient;
         }
 
-        public IEnumerable<ReviewModel> GetAllReviews()
+        public IEnumerable<string> GetAllProducts()
         {
+            // TODO: Improve the performance of the below query as it currently does a full table scan.
+            //       Maybe list each product in another table as a single partition key and query that table.
+
             Pageable<TableEntity> entities = _tableClient.Query<TableEntity>();
 
-            return entities.Select(MapTableEntityToReviewModel);
+            return entities.Select(MapTableEntityToReviewModel).Select(_ => _.ProductName).Distinct();
         }
 
         public IEnumerable<ReviewModel> GetReviewsForProduct(string product)
