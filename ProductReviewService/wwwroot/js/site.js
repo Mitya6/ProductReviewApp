@@ -32,7 +32,7 @@ function displayReviews(product, reviews) {
         div.style.maxWidth = '840px';
         div.style.wordBreak = 'break-all';
         div.innerHTML = review.reviewText;
-        legend.innerHTML = review.timestamp;
+        legend.innerHTML = review.creationDateTime;
         fieldSet.appendChild(legend);
         fieldSet.appendChild(div);
 

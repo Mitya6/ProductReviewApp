@@ -1,4 +1,6 @@
-﻿namespace ProductReviewService.Models
+﻿using Microsoft.Azure.Cosmos.Table;
+
+namespace ProductReviewService.Models
 {
     public class ReviewModel
     {
@@ -6,6 +8,6 @@
         public Guid ID { get; set; }
         public string ReviewText { get; set; }
 
-        public DateTime Timestamp { get; set; }
+        public DateTime CreationDateTime { get; set; }
     }
 }
