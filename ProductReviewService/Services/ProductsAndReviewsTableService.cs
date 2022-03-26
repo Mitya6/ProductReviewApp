@@ -23,13 +23,31 @@ namespace ProductReviewService.Services
             return _productsTable.ExecuteQuery(query).Select(_ => _.PartitionKey);
         }
 
-        public IEnumerable<ReviewModel> GetReviewsForProduct(string product, string nextRowKey = null)
+        public ChunkedResult<ReviewModel> GetReviewsChunk(string product, int chunkSize, TableContinuationToken continuationToken)
         {
-            string filter = $"PartitionKey eq '{product}'";
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>();
-            query.FilterString = filter;
+            if (string.IsNullOrEmpty(product))
+            {
+                throw new ArgumentException("Product cannot be null or empty.");
+            }
+            if (chunkSize < 1 || chunkSize > 1000)
+            {
+                throw new ArgumentOutOfRangeException(nameof(chunkSize), "Must be between 1 and 1000 inclusive.");
+            }
 
-            return _reviewsTable.ExecuteQuery(query).Select(EntityModelToReviewModel);
+            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
+            {
+                FilterString = $"PartitionKey eq '{product}'",
+                TakeCount = chunkSize
+            };
+
+            var tableQuerySegment = _reviewsTable.ExecuteQuerySegmented(query, continuationToken);
+            
+            return new ChunkedResult<ReviewModel>
+            {
+                ChunkSize = chunkSize,
+                ContinuationToken = tableQuerySegment.ContinuationToken,
+                Results = tableQuerySegment.Results.Select(EntityModelToReviewModel).ToArray()
+            };
         }
 
         public void InsertTableEntity(ReviewInputModel model)
@@ -74,10 +92,5 @@ namespace ProductReviewService.Services
 
             return review;
         }
-    }
-
-    public class ReviewEntity : TableEntity
-    {
-        public string ReviewText { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos.Table;
 using ProductReviewService.Models;
 using ProductReviewService.Services;
 
@@ -24,9 +25,25 @@ namespace ProductReviewService.Controllers
 
         //GET api/<ProductsController>/5
         [HttpGet("{id}")]
-        public ActionResult<IEnumerable<ReviewModel>> Get(string id)
+        public ActionResult<ChunkedResult<ReviewModel>> Get(string id, string nextPartitionKey, string nextRowKey, string nextTableName, int targetLocation)
         {
-            return _tableService.GetReviewsForProduct(id).ToArray();
+            // TODO: validation
+
+            TableContinuationToken continuationToken = null;
+
+            if (!string.IsNullOrEmpty(nextPartitionKey) && !string.IsNullOrEmpty(nextRowKey) && Enum.IsDefined(typeof(StorageLocation), targetLocation))
+            {
+                continuationToken = new TableContinuationToken
+                {
+                    NextPartitionKey = nextPartitionKey,
+                    NextRowKey = nextRowKey,
+                    NextTableName = nextTableName,
+                    TargetLocation = (StorageLocation)targetLocation
+                };
+            }
+
+
+            return _tableService.GetReviewsChunk(id, 5, continuationToken);
         }
 
         // POST api/<ProductsController>
