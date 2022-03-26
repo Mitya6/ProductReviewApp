@@ -1,7 +1,8 @@
 # ProductReviewApp
 
-## Known limitations:
-* Querying all products can be slow
+## Assumptions:
+* A set of products is provided by the service.
+* Reviews can be written to existing products, but no new product can be added by users.
 
 
 ## Planned improvements before going live:

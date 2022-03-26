@@ -5,23 +5,22 @@ namespace ProductReviewService.Services
 {
     public class ProductsAndReviewsTableService
     {
-        private readonly CloudTable _cloudTable;
+        private readonly CloudTable _productsTable;
+        private readonly CloudTable _reviewsTable;
 
         public ProductsAndReviewsTableService(IConfiguration configuration)
         {
             var storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("ProductsAndReviewsConnectionString"));
             var tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
-            _cloudTable = tableClient.GetTableReference("ProductsAndReviews");
+            _productsTable = tableClient.GetTableReference("Products");
+            _reviewsTable = tableClient.GetTableReference("ProductsAndReviews");
         }
 
         public IEnumerable<string> GetAllProducts()
         {
-            // TODO: Improve the performance of the below query as it currently does a full table scan.
-            //       Maybe list each product in another table as a single partition key and query that table.
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>();
 
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>();
-
-            return _cloudTable.ExecuteQuery(query).Select(_ => _.PartitionKey).Distinct();
+            return _productsTable.ExecuteQuery(query).Select(_ => _.PartitionKey);
         }
 
         public IEnumerable<ReviewModel> GetReviewsForProduct(string product, string nextRowKey = null)
@@ -30,7 +29,7 @@ namespace ProductReviewService.Services
             TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>();
             query.FilterString = filter;
 
-            return _cloudTable.ExecuteQuery(query).Select(EntityModelToReviewModel);
+            return _reviewsTable.ExecuteQuery(query).Select(EntityModelToReviewModel);
         }
 
         public void InsertTableEntity(ReviewInputModel model)
@@ -49,7 +48,7 @@ namespace ProductReviewService.Services
                 int maxLength = 500;
                 entity.ReviewText = model.ReviewText.Substring(0, Math.Min(maxLength, model.ReviewText.Length));
 
-                _cloudTable.Execute(TableOperation.Insert(entity));
+                _reviewsTable.Execute(TableOperation.Insert(entity));
             }
         }
 
