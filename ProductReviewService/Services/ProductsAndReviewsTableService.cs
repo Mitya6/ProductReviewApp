@@ -1,16 +1,17 @@
-﻿using Azure;
-using Azure.Data.Tables;
+﻿using Microsoft.Azure.Cosmos.Table;
 using ProductReviewService.Models;
 
 namespace ProductReviewService.Services
 {
     public class ProductsAndReviewsTableService
     {
-        private readonly TableClient _tableClient;
+        private readonly CloudTable _cloudTable;
 
-        public ProductsAndReviewsTableService(TableClient tableClient)
+        public ProductsAndReviewsTableService(IConfiguration configuration)
         {
-            _tableClient = tableClient;
+            var storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("ProductsAndReviewsConnectionString"));
+            var tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
+            _cloudTable = tableClient.GetTableReference("ProductsAndReviews");
         }
 
         public IEnumerable<string> GetAllProducts()
@@ -18,18 +19,18 @@ namespace ProductReviewService.Services
             // TODO: Improve the performance of the below query as it currently does a full table scan.
             //       Maybe list each product in another table as a single partition key and query that table.
 
-            Pageable<TableEntity> entities = _tableClient.Query<TableEntity>();
+            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>();
 
-            return entities.Select(MapTableEntityToReviewModel).Select(_ => _.ProductName).Distinct();
+            return _cloudTable.ExecuteQuery(query).Select(_ => _.PartitionKey).Distinct();
         }
 
-        public IEnumerable<ReviewModel> GetReviewsForProduct(string product)
+        public IEnumerable<ReviewModel> GetReviewsForProduct(string product, string nextRowKey = null)
         {
             string filter = $"PartitionKey eq '{product}'";
+            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>();
+            query.FilterString = filter;
 
-            Pageable<TableEntity> entities = _tableClient.Query<TableEntity>(filter);
-
-            return entities.Select(MapTableEntityToReviewModel);
+            return _cloudTable.ExecuteQuery(query).Select(EntityModelToReviewModel);
         }
 
         public void InsertTableEntity(ReviewInputModel model)
@@ -38,7 +39,7 @@ namespace ProductReviewService.Services
             {
                 string invertedTicks = ToInvertedTicks(DateTime.UtcNow);
 
-                TableEntity entity = new TableEntity
+                ReviewEntity entity = new ReviewEntity
                 {
                     PartitionKey = model.ProductName,
                     RowKey = invertedTicks + Guid.NewGuid().ToString()
@@ -46,9 +47,9 @@ namespace ProductReviewService.Services
 
 
                 int maxLength = 500;
-                entity[nameof(ReviewModel.ReviewText)] = model.ReviewText.Substring(0, Math.Min(maxLength, model.ReviewText.Length));
+                entity.ReviewText = model.ReviewText.Substring(0, Math.Min(maxLength, model.ReviewText.Length));
 
-                _tableClient.AddEntity(entity);
+                _cloudTable.Execute(TableOperation.Insert(entity));
             }
         }
 
@@ -62,17 +63,22 @@ namespace ProductReviewService.Services
             return new DateTime(DateTime.MaxValue.Ticks - long.Parse(invertedTicks));
         }
 
-        public ReviewModel MapTableEntityToReviewModel(TableEntity entity)
+        public ReviewModel EntityModelToReviewModel(ReviewEntity entityModel)
         {
             ReviewModel review = new ReviewModel
             {
-                ProductName = entity.PartitionKey,
-                Timestamp = ToDateTime(entity.RowKey.Substring(0, 19)),
-                ID = Guid.Parse(entity.RowKey.Substring(19, 36)),
-                ReviewText = entity[nameof(ReviewModel.ReviewText)]?.ToString()
+                ProductName = entityModel.PartitionKey,
+                CreationDateTime = ToDateTime(entityModel.RowKey.Substring(0, 19)),
+                ID = Guid.Parse(entityModel.RowKey.Substring(19, 36)),
+                ReviewText = entityModel.ReviewText?.ToString()
             };
 
             return review;
         }
+    }
+
+    public class ReviewEntity : TableEntity
+    {
+        public string ReviewText { get; set; }
     }
 }
