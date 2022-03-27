@@ -61,24 +61,31 @@ namespace ProductReviewService.Services
             };
         }
 
-        public void InsertTableEntity(ReviewInputModel model)
+        public void InsertTableEntity(string product, string reviewText)
         {
-            if (!string.IsNullOrWhiteSpace(model.ReviewText))
+            if (string.IsNullOrEmpty(product))
             {
-                string invertedTicks = ToInvertedTicks(DateTime.UtcNow);
-
-                ReviewEntity entity = new ReviewEntity
-                {
-                    PartitionKey = model.ProductName,
-                    RowKey = invertedTicks + Guid.NewGuid().ToString()
-                };
-
-
-                int maxLength = 500;
-                entity.ReviewText = model.ReviewText.Substring(0, Math.Min(maxLength, model.ReviewText.Length));
-
-                _reviewsTable.Execute(TableOperation.Insert(entity));
+                throw new ArgumentException("Product cannot be null or empty.");
             }
+            if (string.IsNullOrEmpty(reviewText))
+            {
+                throw new ArgumentException("Review text cannot be null or empty.");
+            }
+            if (reviewText.Length > 500)
+            {
+                throw new ArgumentException("The length of the Review text must not be more than 500 characters.");
+            }
+
+            string invertedTicks = ToInvertedTicks(DateTime.UtcNow);
+
+            ReviewEntity entity = new ReviewEntity
+            {
+                PartitionKey = product,
+                RowKey = invertedTicks + Guid.NewGuid().ToString(),
+                ReviewText = reviewText
+            };
+
+            _reviewsTable.Execute(TableOperation.Insert(entity));
         }
 
         public ReviewModel GetLatestReview(string product)

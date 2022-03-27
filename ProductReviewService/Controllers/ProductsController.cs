@@ -77,7 +77,7 @@ namespace ProductReviewService.Controllers
                     return BadRequest();
                 }
 
-                _tableService.InsertTableEntity(model);
+                _tableService.InsertTableEntity(model.ProductName, model.ReviewText);
 
                 return StatusCode(StatusCodes.Status201Created);
             }
