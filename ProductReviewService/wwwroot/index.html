@@ -24,9 +24,11 @@
 
         <input type="button" value="Back to products" onclick="getProducts()">
 
-        <form action="javascript:void(0);" method="POST" onsubmit="addReview()"
+        <form action="javascript:void(0);" method="POST" onsubmit="tryAddReview()"
               style="margin:25px">
             <textarea id="addReviewTextbox" placeholder="New review" cols="40" rows="5"></textarea>
+            <p id="validationMessage" style="color:red;"></p>
+
             <input type="submit" value="Add">
         </form>
 

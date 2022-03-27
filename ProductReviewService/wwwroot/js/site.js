@@ -117,12 +117,24 @@ function appendReviews(reviews) {
     }
 }
 
-function addReview() {
+function tryAddReview() {
+    document.getElementById("validationMessage").innerHTML = '';
+
     const addReviewTextbox = document.getElementById('addReviewTextbox');
+    const reviewText = addReviewTextbox.value.trim();
+
+    if (reviewText === '') {
+        document.getElementById("validationMessage").innerHTML = "The review text cannot be empty.";
+        return;
+    } else if (reviewText.length > 500) {
+        document.getElementById("validationMessage").innerHTML = "The review text cannot be more than 500 characters.";
+        return;
+    }
+
 
     const newReview = {
         productName: displayedProductName,
-        reviewText: addReviewTextbox.value.trim(),
+        reviewText: reviewText,
         latestReviewText : latestReviewText
     };
 
