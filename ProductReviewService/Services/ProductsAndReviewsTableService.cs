@@ -57,11 +57,12 @@ namespace ProductReviewService.Services
             {
                 ChunkSize = chunkSize,
                 ContinuationToken = tableQuerySegment.ContinuationToken,
-                Results = tableQuerySegment.Results.Select(EntityModelToReviewModel).ToArray()
+                Results = tableQuerySegment.Results.Select(ReviewEntityToReviewModel).ToArray()
             };
         }
 
-        public void InsertTableEntity(string product, string reviewText)
+
+        public void InsertReviewEntity(string product, string reviewText)
         {
             if (string.IsNullOrEmpty(product))
             {
@@ -101,7 +102,7 @@ namespace ProductReviewService.Services
                 TakeCount = 1
             };
 
-            return _reviewsTable.ExecuteQuery(query).Select(EntityModelToReviewModel).FirstOrDefault();
+            return _reviewsTable.ExecuteQuery(query).Select(ReviewEntityToReviewModel).FirstOrDefault();
         }
 
         private string ToInvertedTicks(DateTime dateTime)
@@ -114,7 +115,7 @@ namespace ProductReviewService.Services
             return new DateTime(DateTime.MaxValue.Ticks - long.Parse(invertedTicks));
         }
 
-        public ReviewModel EntityModelToReviewModel(ReviewEntity entityModel)
+        public ReviewModel ReviewEntityToReviewModel(ReviewEntity entityModel)
         {
             ReviewModel review = new ReviewModel
             {
