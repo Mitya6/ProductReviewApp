@@ -67,15 +67,28 @@ namespace ProductReviewService.Controllers
         {
             try
             {
+                if (!IsFirstOrContainsLatestReview(model))
+                {
+                    return BadRequest();
+                }
+
                 _tableService.InsertTableEntity(model);
 
-                return Ok();
+                return StatusCode(StatusCodes.Status201Created);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
+
+        private bool IsFirstOrContainsLatestReview(ReviewInputModel model)
+        {
+            ReviewModel latestReview = _tableService.GetLatestReview(model.ProductName);
+
+            return (latestReview == null && string.IsNullOrEmpty(model.LatestReviewText)) ||
+                (latestReview != null && string.Equals(latestReview.ReviewText, model.LatestReviewText, StringComparison.Ordinal));
         }
     }
 }

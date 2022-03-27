@@ -70,6 +70,22 @@ namespace ProductReviewService.Services
             }
         }
 
+        public ReviewModel GetLatestReview(string product)
+        {
+            if (string.IsNullOrEmpty(product))
+            {
+                throw new ArgumentException("Product cannot be null or empty.");
+            }
+
+            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
+            {
+                FilterString = $"PartitionKey eq '{product}'",
+                TakeCount = 1
+            };
+
+            return _reviewsTable.ExecuteQuery(query).Select(EntityModelToReviewModel).FirstOrDefault();
+        }
+
         private string ToInvertedTicks(DateTime dateTime)
         {
             return string.Format("{0:D19}", DateTime.MaxValue.Ticks - dateTime.Ticks);

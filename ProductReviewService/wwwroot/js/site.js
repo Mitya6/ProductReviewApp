@@ -1,5 +1,6 @@
 ﻿let displayedProductName = '';
 let continuationToken = '';
+let latestReviewText = '';
 
 function getProducts() {
     continuationToken = '';
@@ -85,12 +86,17 @@ function initializeReviewsPage(product) {
     document.getElementById('title').innerHTML = product;
 
     displayedProductName = product;
+    latestReviewText = '';
 
     document.getElementById('existingReviews').innerHTML = '';
 }
 
 function appendReviews(reviews) {
     reviews.forEach(review => {
+        if (!latestReviewText) {
+            latestReviewText = review.reviewText;
+        }
+
         let fieldSet = document.createElement("FIELDSET");
         let legend = document.createElement("legend");
         let div = document.createElement("div");
@@ -116,7 +122,8 @@ function addReview() {
 
     const newReview = {
         productName: displayedProductName,
-        reviewText: addReviewTextbox.value.trim()
+        reviewText: addReviewTextbox.value.trim(),
+        latestReviewText : latestReviewText
     };
 
     fetch('api/products', {
