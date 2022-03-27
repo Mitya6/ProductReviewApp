@@ -80,9 +80,9 @@ namespace ProductReviewService.Controllers
                     return BadRequest();
                 }
 
-                _tableService.InsertReviewEntity(model.ProductName, model.ReviewText);
+                TableResult tableResult = _tableService.InsertReviewEntity(model.ProductName, model.ReviewText);
 
-                return StatusCode(StatusCodes.Status201Created);
+                return StatusCode(tableResult.HttpStatusCode);
             }
             catch (Exception ex)
             {

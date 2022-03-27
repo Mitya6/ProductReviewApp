@@ -84,7 +84,7 @@ namespace ProductReviewService.Services
             };
         }
 
-        public void InsertReviewEntity(string product, string reviewText)
+        public TableResult InsertReviewEntity(string product, string reviewText)
         {
             if (string.IsNullOrEmpty(product))
             {
@@ -107,7 +107,7 @@ namespace ProductReviewService.Services
                 RowKey = reviewText
             };
 
-            _reviewsTable.Execute(TableOperation.Insert(entity));
+            return _reviewsTable.Execute(TableOperation.Insert(entity));
         }
 
         private string ToInvertedTicks(DateTime dateTime)
