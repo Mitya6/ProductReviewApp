@@ -13,7 +13,7 @@ namespace ProductReviewService.Services
             var storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("ProductsAndReviewsConnectionString"));
             var tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
             _productsTable = tableClient.GetTableReference("Products");
-            _reviewsTable = tableClient.GetTableReference("ProductsAndReviews");
+            _reviewsTable = tableClient.GetTableReference("Reviews");
         }
 
         public ProductsAndReviewsTableService(CloudTable productsTable, CloudTable reviewsTable)
@@ -40,6 +40,22 @@ namespace ProductReviewService.Services
             return _productsTable.ExecuteQuery(query).Count() == 1;
         }
 
+        public ReviewModel GetLatestReview(string product)
+        {
+            if (string.IsNullOrEmpty(product))
+            {
+                throw new ArgumentException("Product cannot be null or empty.");
+            }
+
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>
+            {
+                FilterString = QueryHelpers.StartsWithFilter(product),
+                TakeCount = 1
+            };
+
+            return _reviewsTable.ExecuteQuery(query).Select(TableEntityToReviewModel).FirstOrDefault();
+        }
+
         public ChunkedResult<ReviewModel> GetReviewsChunk(string product, int chunkSize, TableContinuationToken continuationToken)
         {
             if (string.IsNullOrEmpty(product))
@@ -51,9 +67,10 @@ namespace ProductReviewService.Services
                 throw new ArgumentOutOfRangeException(nameof(chunkSize), "Must be between 1 and 1000 inclusive.");
             }
 
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
+
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>
             {
-                FilterString = $"PartitionKey eq '{product}'",
+                FilterString = QueryHelpers.StartsWithFilter(product),
                 TakeCount = chunkSize
             };
 
@@ -63,7 +80,7 @@ namespace ProductReviewService.Services
             {
                 ChunkSize = chunkSize,
                 ContinuationToken = tableQuerySegment.ContinuationToken,
-                Results = tableQuerySegment.Results.Select(ReviewEntityToReviewModel).ToArray()
+                Results = tableQuerySegment.Results.Select(TableEntityToReviewModel).ToArray()
             };
         }
 
@@ -84,30 +101,13 @@ namespace ProductReviewService.Services
 
             string invertedTicks = ToInvertedTicks(DateTime.UtcNow);
 
-            ReviewEntity entity = new ReviewEntity
+            TableEntity entity = new TableEntity
             {
-                PartitionKey = product,
-                RowKey = invertedTicks + Guid.NewGuid().ToString(),
-                ReviewText = reviewText
+                PartitionKey = product + invertedTicks,
+                RowKey = reviewText
             };
 
             _reviewsTable.Execute(TableOperation.Insert(entity));
-        }
-
-        public ReviewModel GetLatestReview(string product)
-        {
-            if (string.IsNullOrEmpty(product))
-            {
-                throw new ArgumentException("Product cannot be null or empty.");
-            }
-
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
-            {
-                FilterString = $"PartitionKey eq '{product}'",
-                TakeCount = 1
-            };
-
-            return _reviewsTable.ExecuteQuery(query).Select(ReviewEntityToReviewModel).FirstOrDefault();
         }
 
         private string ToInvertedTicks(DateTime dateTime)
@@ -120,17 +120,14 @@ namespace ProductReviewService.Services
             return new DateTime(DateTime.MaxValue.Ticks - long.Parse(invertedTicks));
         }
 
-        public ReviewModel ReviewEntityToReviewModel(ReviewEntity entityModel)
+        public ReviewModel TableEntityToReviewModel(TableEntity entity)
         {
-            ReviewModel review = new ReviewModel
+            return new ReviewModel
             {
-                ProductName = entityModel.PartitionKey,
-                CreationDateTime = ToDateTime(entityModel.RowKey.Substring(0, 19)),
-                ID = Guid.Parse(entityModel.RowKey.Substring(19, 36)),
-                ReviewText = entityModel.ReviewText?.ToString()
+                ProductName = entity.PartitionKey.Substring(0, entity.PartitionKey.Length - 19),
+                CreationDateTime = ToDateTime(entity.PartitionKey.Substring(entity.PartitionKey.Length - 19)),
+                ReviewText = entity.RowKey
             };
-
-            return review;
         }
     }
 }
