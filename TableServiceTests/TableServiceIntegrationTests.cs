@@ -42,23 +42,23 @@ namespace TableServiceTests
 
             _tableService.InsertReviewEntity(_testProductName, testReviewText);
 
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>
             {
-                FilterString = $"PartitionKey eq '{_testProductName}'"
+                FilterString = QueryHelpers.StartsWithFilter(_testProductName)
             };
 
             var reviews = _reviewsTable.ExecuteQuery(query).ToArray();
 
             Assert.AreEqual(1, reviews.Length);
-            Assert.AreEqual(testReviewText, reviews.First().ReviewText);
+            Assert.AreEqual(testReviewText, reviews.First().RowKey);
         }
 
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>
             {
-                FilterString = $"PartitionKey eq '{_testProductName}'"
+                FilterString = QueryHelpers.StartsWithFilter(_testProductName)
             };
 
             var reviews = _reviewsTable.ExecuteQuery(query).ToArray();

@@ -63,23 +63,23 @@ namespace TableServiceTests
             string longInput = new string('a', 500);
             _tableService.InsertReviewEntity(_longReviewProductName, longInput);
 
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>
             {
-                FilterString = $"PartitionKey eq '{_longReviewProductName}'"
+                FilterString = QueryHelpers.StartsWithFilter(_longReviewProductName)
             };
 
             var reviews = _reviewsTable.ExecuteQuery(query).ToArray();
 
             Assert.AreEqual(1, reviews.Length);
-            Assert.AreEqual(longInput, reviews.First().ReviewText);
+            Assert.AreEqual(longInput, reviews.First().RowKey);
         }
 
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            TableQuery<ReviewEntity> query = new TableQuery<ReviewEntity>
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>
             {
-                FilterString = $"PartitionKey eq '{_longReviewProductName}'"
+                FilterString = QueryHelpers.StartsWithFilter(_longReviewProductName)
             };
 
             var reviews = _reviewsTable.ExecuteQuery(query).ToArray();
