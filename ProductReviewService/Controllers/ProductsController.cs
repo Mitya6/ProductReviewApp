@@ -32,13 +32,16 @@ namespace ProductReviewService.Controllers
         }
 
         //GET api/<ProductsController>/5
-        [HttpGet("{id}")]
-        public ActionResult<ChunkedResult<ReviewModel>> Get(string id, string nextPartitionKey, string nextRowKey, string nextTableName, int targetLocation)
+        [HttpGet("{product}")]
+        public ActionResult<ChunkedResult<ReviewModel>> Get(string product, string nextPartitionKey, string nextRowKey, string nextTableName, int targetLocation)
         {
-            // TODO: validation
-
             try
             {
+                if (!_tableService.ProductExists(product))
+                {
+                    return BadRequest();
+                }
+
                 TableContinuationToken continuationToken = null;
 
                 if (!string.IsNullOrEmpty(nextPartitionKey) && !string.IsNullOrEmpty(nextRowKey) && Enum.IsDefined(typeof(StorageLocation), targetLocation))
@@ -52,7 +55,7 @@ namespace ProductReviewService.Controllers
                     };
                 }
 
-                return _tableService.GetReviewsChunk(id, 5, continuationToken);
+                return _tableService.GetReviewsChunk(product, 5, continuationToken);
             }
             catch (Exception ex)
             {
