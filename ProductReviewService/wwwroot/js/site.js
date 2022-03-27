@@ -5,9 +5,9 @@ function getProducts() {
     continuationToken = '';
 
     fetch('api/products')
-        .then(response => response.json())
+        .then(response => handleResponse(response))
         .then(products => displayProducts(products))
-        .catch(error => console.error('Unable to get products.', error));
+        .catch(error => handleError(error, 'Unable to get products.'));
 }
 
 function displayCount(itemCount) {
@@ -50,13 +50,13 @@ function displayProducts(products) {
 
 function getReviews(product) {
     fetch('api/products/' + product)
-        .then(response => response.json())
+        .then(response => handleResponse(response))
         .then(chunkedResult => {
             initializeReviewsPage(product);
             continuationToken = chunkedResult.continuationToken;
             appendReviews(chunkedResult.results);
         })
-        .catch(error => console.error('Unable to get reviews.', error));
+        .catch(error => handleError(error, 'Unable to get reviews.'));
 }
 
 function getMoreReviews() {
@@ -69,12 +69,12 @@ function getMoreReviews() {
     });
 
     fetch('api/products/' + displayedProductName + '?' + queryString.toString())
-        .then(response => response.json())
+        .then(response => handleResponse(response))
         .then(chunkedResult => {
             continuationToken = chunkedResult.continuationToken;
             appendReviews(chunkedResult.results);
         })
-        .catch(error => console.error('Unable to get reviews.', error));
+        .catch(error => handleError(error, 'Unable to get reviews.'));
 }
 
 function initializeReviewsPage(product) {
@@ -127,10 +127,33 @@ function addReview() {
         },
         body: JSON.stringify(newReview)
     })
-        .then(() => {
-            addReviewTextbox.value = '';
-            continuationToken = '';
-            getReviews(displayedProductName);
+        .then(response => {
+            if (response.ok) {
+                addReviewTextbox.value = '';
+                continuationToken = '';
+                getReviews(displayedProductName);
+            } else {
+                throw new Error(response.status + ' - ' + response.statusText);
+            }            
         })
-        .catch(error => console.error('Unable to add new review.', error));
+        .catch(error => handleError(error, 'Unable to add new review.'));
+}
+
+function handleResponse(response) {
+    if (response.ok) {
+        return response.json();
+    } else {
+        throw new Error(response.status + ' - ' + response.statusText);
+    }
+}
+
+function handleError(error, message) {
+    console.error(message, error);
+    displayError(error);
+}
+            
+function displayError(error) {
+    document.getElementById('productList').style.display = 'none';
+    document.getElementById('reviewList').style.display = 'none';
+    document.getElementById('pageHeader').innerHTML = error;
 }

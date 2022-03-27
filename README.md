@@ -6,9 +6,9 @@
 
 
 ## Planned improvements before going live:
-* user handling (with HTTPS)
+* User handling (with HTTPS)
+* Use a logging framework (e.g.: Nlog, Log4Net) instead of logging to the console
 * client side and server side validation
 * performance improvement ideas:
   - see if storing the review text as part of an indexed column (e.g.: row key) has any benefit
-  - implement paging of data using ContinuationTokens (started working on it on ContinuationTokens branch)
 * +1 extra

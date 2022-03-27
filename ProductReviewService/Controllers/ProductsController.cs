@@ -20,7 +20,15 @@ namespace ProductReviewService.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            return _tableService.GetAllProducts().ToArray();
+            try
+            {
+                return _tableService.GetAllProducts().ToArray();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         //GET api/<ProductsController>/5
@@ -29,30 +37,45 @@ namespace ProductReviewService.Controllers
         {
             // TODO: validation
 
-            TableContinuationToken continuationToken = null;
-
-            if (!string.IsNullOrEmpty(nextPartitionKey) && !string.IsNullOrEmpty(nextRowKey) && Enum.IsDefined(typeof(StorageLocation), targetLocation))
+            try
             {
-                continuationToken = new TableContinuationToken
+                TableContinuationToken continuationToken = null;
+
+                if (!string.IsNullOrEmpty(nextPartitionKey) && !string.IsNullOrEmpty(nextRowKey) && Enum.IsDefined(typeof(StorageLocation), targetLocation))
                 {
-                    NextPartitionKey = nextPartitionKey,
-                    NextRowKey = nextRowKey,
-                    NextTableName = nextTableName,
-                    TargetLocation = (StorageLocation)targetLocation
-                };
+                    continuationToken = new TableContinuationToken
+                    {
+                        NextPartitionKey = nextPartitionKey,
+                        NextRowKey = nextRowKey,
+                        NextTableName = nextTableName,
+                        TargetLocation = (StorageLocation)targetLocation
+                    };
+                }
+
+                return _tableService.GetReviewsChunk(id, 5, continuationToken);
             }
-
-
-            return _tableService.GetReviewsChunk(id, 5, continuationToken);
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         // POST api/<ProductsController>
         [HttpPost]
         public ActionResult Post([FromBody] ReviewInputModel model)
         {
-            _tableService.InsertTableEntity(model);
+            try
+            {
+                _tableService.InsertTableEntity(model);
 
-            return Ok();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }
