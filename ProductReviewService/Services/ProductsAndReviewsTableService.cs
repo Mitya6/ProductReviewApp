@@ -16,6 +16,12 @@ namespace ProductReviewService.Services
             _reviewsTable = tableClient.GetTableReference("ProductsAndReviews");
         }
 
+        public ProductsAndReviewsTableService(CloudTable productsTable, CloudTable reviewsTable)
+        {
+            _productsTable = productsTable;
+            _reviewsTable = reviewsTable;
+        }
+
         public IEnumerable<string> GetAllProducts()
         {
             TableQuery<TableEntity> query = new TableQuery<TableEntity>();
@@ -60,7 +66,6 @@ namespace ProductReviewService.Services
                 Results = tableQuerySegment.Results.Select(ReviewEntityToReviewModel).ToArray()
             };
         }
-
 
         public void InsertReviewEntity(string product, string reviewText)
         {
