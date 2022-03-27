@@ -23,6 +23,17 @@ namespace ProductReviewService.Services
             return _productsTable.ExecuteQuery(query).Select(_ => _.PartitionKey);
         }
 
+        public bool ProductExists(string product)
+        {
+            TableQuery<TableEntity> query = new TableQuery<TableEntity>
+            {
+                FilterString = $"PartitionKey eq '{product}'",
+                TakeCount = 1
+            };
+
+            return _productsTable.ExecuteQuery(query).Count() == 1;
+        }
+
         public ChunkedResult<ReviewModel> GetReviewsChunk(string product, int chunkSize, TableContinuationToken continuationToken)
         {
             if (string.IsNullOrEmpty(product))

@@ -67,6 +67,11 @@ namespace ProductReviewService.Controllers
         {
             try
             {
+                if (!_tableService.ProductExists(model.ProductName))
+                {
+                    return BadRequest();
+                }
+
                 if (!IsFirstOrContainsLatestReview(model))
                 {
                     return BadRequest();
